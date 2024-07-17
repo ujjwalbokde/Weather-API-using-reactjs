@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 
 const API_URL = "https://api.openweathermap.org/data/2.5/weather";
 const API_KEY = "ae8adcd0d439ff8c43540c5836669c05";
@@ -6,51 +7,93 @@ const API_KEY = "ae8adcd0d439ff8c43540c5836669c05";
 function App() {
   const [weatherData, setWeatherData] = useState(null);
   const [error, setError] = useState(null);
-  const cityRef = useRef(null); // Corrected ref usage
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
   const fetchWeatherData = async (city) => {
     try {
-      const response = await fetch(`${API_URL}?q=${city}&appid=${API_KEY}&units=metric`);
+      const response = await fetch(
+        `${API_URL}?q=${city}&appid=${API_KEY}&units=metric`
+      );
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error("Network response was not ok");
       }
       const data = await response.json();
       setWeatherData(data);
+      setError(null);
     } catch (error) {
-      setError(error);
+      setError(error.message);
+      setWeatherData(null);
     }
   };
 
-  useEffect(() => {
-    // Fetch initial weather data for default city (London)
-    fetchWeatherData("London");
-  }, []);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const city = cityRef.current.value;
-    if (city.trim() === "") return; // Don't fetch if input is empty
-    fetchWeatherData(city);
+  const onSubmit = (data) => {
+    fetchWeatherData(data.city);
   };
 
-  if (error) return <p>Error: {error.message}</p>;
-  if (!weatherData) return null;
-
   return (
-    <div className="container border-2 border-orange-500 pb-5 px-12 mx-[20%] mt-[6%] rounded-lg">
-      <h1 className="text-white text-3xl w-[500px] m-8 mx-60 font-bold">Weather Detector</h1>
-      <div className="border-2 p-4 bg-red-200 rounded-md font-bold">
-        <h1 className="text-center mb-4 text-xl">Weather Search Box</h1>
-        <form onSubmit={handleSubmit} className="mx-60">
-          <label htmlFor="city" className="mb-4">Enter city name : </label>
-          <input ref={cityRef} className="p-2 rounded-md" type="text" id="city" name="city" required /><br /><br />
-          <button type="submit" className="mt-0 border border-amber-700 p-2 rounded-md bg-black text-white">Search</button>
-        </form> 
-      </div>
-      <div className="border-2 p-4 bg-amber-100 rounded-md mt-4 text-center font-bold mb-5">
-        <h1 className="p-4 text-xl">Weather in {weatherData.name}</h1>
-        <p>Temperature: {weatherData.main.temp} °C</p>
-        <p>Description: {weatherData.weather[0].description}</p>
+    <div className="text-white">
+      <img src="img/thunderbolt.png" alt="Weather" className="w-full h-48" />
+      <h1 className="mb-2 text-center font-serif text-3xl mt-5">
+        Discover your local forecast and step into the weather of your city
+      </h1>
+      <div className="">
+        <div className="border-2 border-gray-500 w-[40%] rounded-lg mt-10 p-5 mb-5 mx-auto">
+          <form onSubmit={handleSubmit(onSubmit)} className="mx-40">
+            <input
+              className="p-1 rounded-md text-black"
+              {...register("city", { required: "This field is required" })}
+              placeholder="City"
+            />
+            {errors.city && <p className="text-red-500 pt-2">{errors.city.message}</p>}
+            <br />
+            <br />
+            <input type="submit" value="Search" className="p-2 rounded-md border border-gray-500" />
+          </form>
+        </div>
+        {error && <p className="text-red-500 text-center">{error}</p>}
+        {weatherData && (
+          <div className="card w-[40%] mx-auto border-2 border-gray-500 rounded-lg mt-10 p-5 mb-5">
+            <img
+              src={
+                weatherData.weather[0].main.toLowerCase() === 'clouds'
+                  ? "/img/cloudy.png"
+                  : weatherData.weather[0].main.toLowerCase() === 'clear'
+                  ? "/img/mid.png"
+                  : "/img/sunny.png"
+              }
+              className="w-full h-60 object-cover rounded-t-lg"
+              alt={weatherData.weather[0].main}
+            />
+            <div className="p-4">
+              <h4 className="text-2xl font-bold text-center">
+                {weatherData.name}
+                {weatherData.weather[0].main.toLowerCase() === 'clouds' && (
+                  <i className="fa-solid fa-cloud ml-2"></i>
+                )}
+                {weatherData.weather[0].main.toLowerCase() === 'clear' && (
+                  <i className="fa-solid fa-cloud-sun ml-2"></i>
+                )}
+                {weatherData.weather[0].main.toLowerCase() !== 'clouds' && weatherData.weather[0].main.toLowerCase() !== 'clear' && (
+                  <i className="fa-solid fa-sun ml-2"></i>
+                )}
+              </h4>
+              <p className="mt-2">
+                Temperature: <b>{Math.round(weatherData.main.temp)}°C / {Math.round((weatherData.main.temp * 9/5) + 32)}°F</b>
+              </p>
+              <p className="mt-2">
+                Min. Temp: <b>{Math.round(weatherData.main.temp_min)}°C / {Math.round((weatherData.main.temp_min * 9/5) + 32)}°F</b>
+              </p>
+              <p className="mt-2">
+                Max. Temp: <b>{Math.round(weatherData.main.temp_max)}°C / {Math.round((weatherData.main.temp_max * 9/5) + 32)}°F</b>
+              </p>
+              <p className="mt-2">Pressure: <b>{weatherData.main.pressure} hPa</b></p>
+              <p className="mt-2">Humidity: <b>{weatherData.main.humidity} %</b></p>
+              <p className="mt-2">
+                The weather in <b>{weatherData.name}</b> can be described as <b><i>{weatherData.weather[0].description}</i></b>. It feels like <b>{Math.round(weatherData.main.feels_like)}°C</b>.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
