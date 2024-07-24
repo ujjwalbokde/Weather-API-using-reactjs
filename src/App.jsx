@@ -15,7 +15,7 @@ function App() {
         `${API_URL}?q=${city}&appid=${API_KEY}&units=metric`
       );
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        throw new Error("City name is not valid");
       }
       const data = await response.json();
       setWeatherData(data);
@@ -31,28 +31,27 @@ function App() {
   };
 
   return (
-    <div className="text-white">
-      <img src="img/thunderbolt.png" alt="Weather" className="w-full h-48" />
+    <div className="text-white p-4">
+      <img src="img/thunderbolt.png" alt="Weather" className="w-full h-48 object-cover" />
       <h1 className="mb-2 text-center font-serif text-3xl mt-5">
         Discover your local forecast and step into the weather of your city
       </h1>
-      <div className="">
-        <div className="border-2 border-gray-500 w-[40%] rounded-lg mt-10 p-5 mb-5 mx-auto">
-          <form onSubmit={handleSubmit(onSubmit)} className="mx-40">
+      <div>
+        <div className="border-2 border-gray-500 w-full sm:w-[80%] md:w-[60%] lg:w-[40%] rounded-lg mt-10 p-5 mb-5 mx-auto">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center">
             <input
-              className="p-1 rounded-md text-black"
+              className="p-2 rounded-md text-black w-full sm:w-3/4 md:w-1/2 lg:w-1/3"
               {...register("city", { required: "This field is required" })}
               placeholder="City"
             />
             {errors.city && <p className="text-red-500 pt-2">{errors.city.message}</p>}
             <br />
-            <br />
-            <input type="submit" value="Search" className="p-2 rounded-md border border-gray-500" />
+            <input type="submit" value="Search" className="p-2 rounded-md border border-gray-500 w-full sm:w-3/4 md:w-1/2 lg:w-1/3" />
           </form>
         </div>
         {error && <p className="text-red-500 text-center">{error}</p>}
         {weatherData && (
-          <div className="card w-[40%] mx-auto border-2 border-gray-500 rounded-lg mt-10 p-5 mb-5">
+          <div className="card w-full sm:w-[80%] md:w-[60%] lg:w-[40%] mx-auto border-2 border-gray-500 rounded-lg mt-10 p-5 mb-5">
             <img
               src={
                 weatherData.weather[0].main.toLowerCase() === 'clouds'
