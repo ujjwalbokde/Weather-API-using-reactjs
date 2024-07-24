@@ -32,7 +32,7 @@ function App() {
 
   return (
     <div className="text-white p-4">
-      <img src="img/thunderbolt.png" alt="Weather" className="w-full h-48 object-cover" />
+      <img src="img/thunderbolt.png" alt="Weather" className="w-full h-48" />
       <h1 className="mb-2 text-center font-serif text-3xl mt-5">
         Discover your local forecast and step into the weather of your city
       </h1>
