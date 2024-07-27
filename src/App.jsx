@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import Footer from "./Footer";
 
 const API_URL = "https://api.openweathermap.org/data/2.5/weather";
 const API_KEY = "ae8adcd0d439ff8c43540c5836669c05";
@@ -94,6 +95,7 @@ function App() {
           </div>
         )}
       </div>
+      <Footer/>
     </div>
   );
 }
