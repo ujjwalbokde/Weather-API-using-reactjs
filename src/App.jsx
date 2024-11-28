@@ -1,101 +1,72 @@
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import Footer from "./Footer";
+import React, { useState } from 'react';
+import SearchBar from './components/SearchBar';
+import WeatherCard from './components/WeatherCard';
+import { getWeatherData } from './services/weatherApi';
+import { CloudSun } from 'lucide-react';
 
-const API_URL = "https://api.openweathermap.org/data/2.5/weather";
-const API_KEY = "ae8adcd0d439ff8c43540c5836669c05";
 function App() {
+  const [city, setCity] = useState('');
   const [weatherData, setWeatherData] = useState(null);
-  const [error, setError] = useState(null);
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const fetchWeatherData = async (city) => {
+  const handleSearch = async () => {
+    if (!city.trim()) return;
+
+    setLoading(true);
+    setError('');
+
     try {
-      const response = await fetch(
-        `${API_URL}?q=${city}&appid=${API_KEY}&units=metric`
-      );
-      if (!response.ok) {
-        throw new Error("City name is not valid");
-      }
-      const data = await response.json();
+      const data = await getWeatherData(city);
       setWeatherData(data);
-      setError(null);
-    } catch (error) {
-      setError(error.message);
+    } catch (err) {
+      setError('City not found. Please try again.');
       setWeatherData(null);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const onSubmit = (data) => {
-    fetchWeatherData(data.city);
-  };
-
   return (
-    <div className="text-white p-4">
-      <img src="img/thunderbolt.png" alt="Weather" className="w-full h-48" />
-      <h1 className="mb-2 text-center font-serif text-3xl mt-5">
-        Discover your local forecast and step into the weather of your city
-      </h1>
-      <div>
-        <div className="border-2 border-gray-500 w-full sm:w-[80%] md:w-[60%] lg:w-[40%] rounded-lg mt-10 p-5 mb-5 mx-auto">
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center">
-            <input
-              className="p-2 rounded-md text-black w-full sm:w-3/4 md:w-1/2 lg:w-1/3"
-              {...register("city", { required: "This field is required" })}
-              placeholder="City"
-            />
-            {errors.city && <p className="text-red-500 pt-2">{errors.city.message}</p>}
-            <br />
-            <input type="submit" value="Search" className="p-2 rounded-md border border-gray-500 w-full sm:w-3/4 md:w-1/2 lg:w-1/3" />
-          </form>
+    <div 
+      className="min-h-screen bg-gradient-to-br from-blue-400 to-purple-500 flex flex-col items-center py-12 px-4"
+      style={{
+        backgroundImage: `url('https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=2000&q=80')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <div className="backdrop-blur-sm bg-white/30 p-8 rounded-2xl w-full max-w-md mb-8">
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <CloudSun className="w-10 h-10 text-white" />
+          <h1 className="text-3xl font-bold text-white">Weather App</h1>
         </div>
-        {error && <p className="text-red-500 text-center">{error}</p>}
-        {weatherData && (
-          <div className="card w-full sm:w-[80%] md:w-[60%] lg:w-[40%] mx-auto border-2 border-gray-500 rounded-lg mt-10 p-5 mb-5">
-            <img
-              src={
-                weatherData.weather[0].main.toLowerCase() === 'clouds'
-                  ? "/img/cloudy.png"
-                  : weatherData.weather[0].main.toLowerCase() === 'clear'
-                  ? "/img/mid.png"
-                  : "/img/sunny.png"
-              }
-              className="w-full h-60 object-cover rounded-t-lg"
-              alt={weatherData.weather[0].main}
-            />
-            <div className="p-4">
-              <h4 className="text-2xl font-bold text-center">
-                {weatherData.name}
-                {weatherData.weather[0].main.toLowerCase() === 'clouds' && (
-                  <i className="fa-solid fa-cloud ml-2"></i>
-                )}
-                {weatherData.weather[0].main.toLowerCase() === 'clear' && (
-                  <i className="fa-solid fa-cloud-sun ml-2"></i>
-                )}
-                {weatherData.weather[0].main.toLowerCase() !== 'clouds' && weatherData.weather[0].main.toLowerCase() !== 'clear' && (
-                  <i className="fa-solid fa-sun ml-2"></i>
-                )}
-              </h4>
-              <p className="mt-2">
-                Temperature: <b>{Math.round(weatherData.main.temp)}°C / {Math.round((weatherData.main.temp * 9/5) + 32)}°F</b>
-              </p>
-              <p className="mt-2">
-                Min. Temp: <b>{Math.round(weatherData.main.temp_min)}°C / {Math.round((weatherData.main.temp_min * 9/5) + 32)}°F</b>
-              </p>
-              <p className="mt-2">
-                Max. Temp: <b>{Math.round(weatherData.main.temp_max)}°C / {Math.round((weatherData.main.temp_max * 9/5) + 32)}°F</b>
-              </p>
-              <p className="mt-2">Pressure: <b>{weatherData.main.pressure} hPa</b></p>
-              <p className="mt-2">Humidity: <b>{weatherData.main.humidity} %</b></p>
-              <p className="mt-2">
-                The weather in <b>{weatherData.name}</b> can be described as <b><i>{weatherData.weather[0].description}</i></b>. It feels like <b>{Math.round(weatherData.main.feels_like)}°C</b>.
-              </p>
-            </div>
+        <SearchBar 
+          city={city} 
+          setCity={setCity} 
+          onSearch={handleSearch} 
+        />
+      </div>
+
+      <div className="w-full max-w-md">
+        {loading && (
+          <div className="text-center text-white">
+            Loading...
           </div>
         )}
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+            {error}
+          </div>
+        )}
+
+        {weatherData && !loading && !error && (
+          <WeatherCard weatherData={weatherData} />
+        )}
       </div>
-      <Footer/>
     </div>
   );
 }
+
 export default App;
